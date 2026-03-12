@@ -88,7 +88,12 @@ function StepIndicator({ steps, current }: { steps: string[]; current: number })
             {step}
           </div>
           {i < steps.length - 1 && (
-            <div className={`w-8 h-px ${i < current ? "bg-emerald-500/40" : "bg-slate-700"}`} />
+            <div className="relative w-8 h-px">
+              <div className={`absolute inset-0 ${i < current ? "bg-emerald-500/40" : "bg-slate-700"}`} />
+              {i < current && (
+                <div className="absolute inset-0 bg-emerald-400/60 animate-flow-line" />
+              )}
+            </div>
           )}
         </div>
       ))}
@@ -336,7 +341,7 @@ function HostedCardForm({
   );
 }
 
-function TokenCard({ token, label, masked }: { token: string; label: string; masked?: boolean }) {
+function TokenCard({ token, label, masked, variant = "orange" }: { token: string; label: string; masked?: boolean; variant?: "orange" | "blue" }) {
   const [revealed, setRevealed] = useState(!masked);
   const [copied, setCopied] = useState(false);
 
@@ -346,8 +351,10 @@ function TokenCard({ token, label, masked }: { token: string; label: string; mas
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const glowClass = variant === "blue" ? "animate-network-glow" : "animate-token-glow";
+
   return (
-    <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-xl p-5">
+    <div className={`bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-xl p-5 animate-scale-in ${glowClass}`}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
           {label}
@@ -369,7 +376,7 @@ function TokenCard({ token, label, masked }: { token: string; label: string; mas
           </button>
         </div>
       </div>
-      <p className="font-mono text-lg text-orange-400 tracking-wider">
+      <p className={`font-mono text-lg tracking-wider ${variant === "blue" ? "text-blue-400" : "text-orange-400"}`}>
         {revealed ? token : token.slice(0, 6) + "******" + token.slice(-4)}
       </p>
     </div>
@@ -379,7 +386,7 @@ function TokenCard({ token, label, masked }: { token: string; label: string; mas
 function ResultBadge({ success }: { success: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold animate-scale-in ${
         success
           ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
           : "bg-red-500/20 text-red-400 border border-red-500/30"
@@ -1032,7 +1039,7 @@ function GatewayFlow({
       />
 
       {state.gwStep === 0 && (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 animate-fade-in">
           <h3 className="text-white font-semibold mb-1">Step 1: Initial Card Payment (CIT)</h3>
           <p className="text-xs text-slate-400 mb-5">
             Enter card details in the secure hosted fields to make a payment and create a gateway token
@@ -1048,7 +1055,7 @@ function GatewayFlow({
       )}
 
       {state.gwStep >= 1 && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-slide-up">
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-white font-semibold">CIT Payment Result</h3>
@@ -1064,7 +1071,7 @@ function GatewayFlow({
           </div>
 
           {state.gwStep === 1 && state.gwToken && (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 animate-fade-in">
               <h3 className="text-white font-semibold mb-1">Step 2: Merchant Initiated Payment (MIT)</h3>
               <p className="text-xs text-slate-400 mb-5">Charge the stored token without card details</p>
               <div className="space-y-4">
@@ -1107,7 +1114,7 @@ function GatewayFlow({
           )}
 
           {state.gwStep === 2 && state.gwMITResult && (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 animate-slide-up">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-semibold">MIT Payment Result</h3>
                 <ResultBadge success={state.gwMITResult.success as boolean} />
@@ -1164,7 +1171,7 @@ function NetworkFlow({
       />
 
       {state.ntStep === 0 && (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 animate-fade-in">
           <h3 className="text-white font-semibold mb-1">Step 1: Provision Network Token</h3>
           <p className="text-xs text-slate-400 mb-5">
             Enter card details in the secure hosted fields to request a network token (DPAN)
@@ -1181,14 +1188,14 @@ function NetworkFlow({
       )}
 
       {state.ntStep >= 1 && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-slide-up">
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-white font-semibold">Network Token Result</h3>
               <ResultBadge success={!!state.ntToken} />
             </div>
             {state.ntToken ? (
-              <TokenCard token={state.ntToken} label="Network Token (DPAN)" masked />
+              <TokenCard token={state.ntToken} label="Network Token (DPAN)" masked variant="blue" />
             ) : (
               <div className="bg-slate-800/50 rounded-lg p-4">
                 <p className="text-xs text-yellow-400">
@@ -1200,7 +1207,7 @@ function NetworkFlow({
           </div>
 
           {state.ntStep === 1 && state.ntToken && (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 animate-fade-in">
               <h3 className="text-white font-semibold mb-1">Step 2: Pay with Network Token</h3>
               <p className="text-xs text-slate-400 mb-5">
                 Use the DPAN for payment - sourceOfFunds.type = SCHEME_TOKEN
@@ -1245,7 +1252,7 @@ function NetworkFlow({
           )}
 
           {state.ntStep === 2 && state.ntPayResult && (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 animate-slide-up">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-semibold">Network Token Payment Result</h3>
                 <ResultBadge success={state.ntPayResult.success as boolean} />
